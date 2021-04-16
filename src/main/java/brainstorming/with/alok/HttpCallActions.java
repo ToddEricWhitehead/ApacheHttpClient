@@ -13,9 +13,11 @@ import javax.net.ssl.HostnameVerifier;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.StringEntity;
 //import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -28,6 +30,26 @@ public class HttpCallActions {
 	// https://reqres.in/
 	public static String baseURI = "https://reqres.in/";
 	private static HttpResponse response;
+	
+	public static void POST(String endPoint, String jsonBody, CloseableHttpClient httpClient) {
+		try {
+			URI url = new URIBuilder(baseURI + endPoint).build();
+			// post request
+			HttpPost httpPost = new HttpPost(url);
+			httpPost.setHeader("content-type", "application/json");
+			StringEntity stringEntity = new StringEntity(jsonBody);
+			httpPost.setEntity(stringEntity);
+			// execute the request
+			HttpResponse httpResponse = httpClient.execute(httpPost);
+			if (httpResponse != null) {
+				response = httpResponse;
+			}
+			
+		} catch (Exception e) {
+			e.getMessage();
+		}
+	}
+	
 	
 	//Get method
 	public static void GET(String endpoint, CloseableHttpClient httpClient) {		
@@ -61,12 +83,19 @@ public class HttpCallActions {
 	}
 	
 	
-	public static CloseableHttpClient getConcurrenClient(int threadPoolCount) {
+	public static CloseableHttpClient getConcurrentClient(int threadPoolCount) {
+		// create the pool connection manager
 		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-		HttpClientBuilder clientBuilder = HttpClients.custom();
+		// set thr pool size
 		connectionManager.setMaxTotal(threadPoolCount);
+		
+		// Make the client builder
+		HttpClientBuilder clientBuilder = HttpClients.custom();
+		// set the connection manager
 		clientBuilder.setConnectionManager(connectionManager);
-		return null;
+		// build the client
+		CloseableHttpClient client = clientBuilder.build();
+		return client;
 	}
 	
 	public static SSLConnectionSocketFactory getSSLContext() {
